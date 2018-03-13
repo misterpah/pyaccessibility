@@ -43,14 +43,15 @@ def getWindow(windowName):
     data = getWindowList()
     ret = None
     for each in data:
-        if each['name'] == windowName:
+        if each['name'] == "":
+            continue    
+        if windowName.find(each['name']) != -1:
             ret = each
     return ret
 
 
 def getObjectList(window):
     handle = getWindow(window)['handle']
-
     def getChild(handle):
         ret = []
         for i in range(0, handle.getChildCount()):
@@ -90,6 +91,14 @@ def getObject(windowName, objectName):
     data = getObjectList(windowName)
     ret = None
     for each in data:
-        if each[0]['name'] == objectName:
+        if each[0]['name'] == "":
+            continue
+        if objectName.find(each[0]['name']) != -1:
             ret = each[0]
+        else:
+            if similar(each[0]['name'],objectName) > 0.8:
+                ret = each[0]
     return ret
+    
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
