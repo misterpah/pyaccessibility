@@ -90,15 +90,19 @@ def getObjectList(window):
 def getObject(windowName, objectName):
     data = getObjectList(windowName)
     ret = None
+    similarIndex = 0
+    similarObject = None
     for each in data:
         if each[0]['name'] == "":
             continue
-        if objectName.find(each[0]['name']) != -1:
-            ret = each[0]
         else:
-            if similar(each[0]['name'],objectName) > 0.8:
-                ret = each[0]
+            if similar(objectName,each[0]['name']) > 0.5:
+                if similar(objectName,each[0]['name']) > similarIndex:
+                    similarIndex = similar(objectName,each[0]['name'])
+                    similarObject = each[0]
+    if ret == None:
+        ret = [None,{'return':similarObject,'similarity':similarIndex}]
     return ret
     
 def similar(a, b):
-    return SequenceMatcher(None, a, b).ratio()
+    return jellyfish.jaro_distance(unicode(a,"utf-8"),unicode(b,"utf-8"))

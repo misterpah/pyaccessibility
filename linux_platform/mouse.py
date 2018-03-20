@@ -6,8 +6,13 @@ def _mouseEvent(posx, posy, typeString):
     time.sleep(0.5)
 
 
-def mouseMove(window, object):
-    handle = getObject(window, object)['handle']
+def mouseMove(window, object,handle=None):
+    if handle == None:
+        result = getObject(window, object)
+        if isinstance(result,list):
+            handle = result[1]['return']['handle']
+        else:
+            handle = result['handle']
     size = handle.queryComponent().getSize()
     pos = handle.queryComponent().getPosition(pyatspi.DESKTOP_COORDS)
     try:
@@ -17,8 +22,13 @@ def mouseMove(window, object):
         return False
 
 
-def mouseClick(window, object):
-    handle = getObject(window, object)['handle']
+def mouseClick(window, object,handle=None):
+    if handle == None:
+        result = getObject(window, object)
+        if isinstance(result,list):
+            handle = result[1]['return']['handle']
+        else:
+            handle = result['handle']
     size = handle.queryComponent().getSize()
     pos = handle.queryComponent().getPosition(pyatspi.DESKTOP_COORDS)
     try:
