@@ -1,5 +1,3 @@
-import pyatspi
-
 SHOW_HIDDEN = False
 
 
@@ -21,6 +19,7 @@ def objectIsVisible(handle):
 
 
 def getDesktop():
+    pyatspi.Registry._set_registry("None")
     return pyatspi.Registry.getDesktop(0)
 
 
@@ -42,11 +41,19 @@ def getWindowList():
 def getWindow(windowName):
     data = getWindowList()
     ret = None
+    similarityIndex = 0
+    similarityObject = None
     for each in data:
         if each['name'] == "":
-            continue    
-        if windowName.find(each['name']) != -1:
-            ret = each
+            continue
+        else:
+            cur_name = each['name'].replace("*","")
+            if similar(windowName,cur_name) > 0.5:
+                if similar(windowName,cur_name) > similarityIndex:
+                    similarityIndex = similar(windowName,cur_name)
+                    similarityObject = each
+    if ret == None:
+        ret = similarityObject
     return ret
 
 
@@ -86,8 +93,30 @@ def getObjectList(window):
             pass
     return ret
 
+def getObject(windowName,objectName):
+    ret = None
+    exact_search = getObject_exact(windowName,objectName)
+    if exact_search == None:
+        similar_search = getObject_similar(windowName,objectName)
+        ret = similar_search
+    else:
+        ret = exact_search
+    return ret
 
-def getObject(windowName, objectName):
+def getObject_exact(windowName,objectName):
+    data = getObjectList(windowName)
+    ret = None
+    similarIndex = 0
+    similarObject = None
+    for each in data:
+        if each[0]['name'] == "":
+            continue
+        elif each[0]['name'] == objectName:
+            ret = each
+    return ret
+    
+
+def getObject_similar(windowName, objectName):
     data = getObjectList(windowName)
     ret = None
     similarIndex = 0
@@ -106,3 +135,17 @@ def getObject(windowName, objectName):
     
 def similar(a, b):
     return jellyfish.jaro_distance(unicode(a,"utf-8"),unicode(b,"utf-8"))
+
+def grab_focus(windowName):
+    windowName = getWindow(windowName)['name']
+    try:
+        windowlist = subprocess.check_output(['wmctrl','-l'])
+        windowID = -1
+        for each in windowlist.split("\n"):
+            if each.find(windowName) != -1:
+                windowID = each.split(" ")[0]
+                break
+        if windowID != -1:
+            os.system("wmctrl -i -a {}".format(windowID))
+    except:
+        raise OSError ("Linux program wmctrl is missing. Please install wmctrl.")

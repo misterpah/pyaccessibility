@@ -7,10 +7,14 @@ def _mouseEvent(posx, posy, typeString):
 
 
 def mouseMove(window, object,handle=None):
+    grab_focus(window)
     if handle == None:
         result = getObject(window, object)
         if isinstance(result,list):
-            handle = result[1]['return']['handle']
+            if result[0] == None:
+                handle = result[1]['return']['handle']
+            else:
+                handle = result[0]['handle']
         else:
             handle = result['handle']
     size = handle.queryComponent().getSize()
@@ -23,6 +27,7 @@ def mouseMove(window, object,handle=None):
 
 
 def mouseClick(window, object,handle=None):
+    grab_focus(window)
     if handle == None:
         result = getObject(window, object)
         if isinstance(result,list):
