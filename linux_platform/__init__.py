@@ -3,6 +3,7 @@ from difflib import SequenceMatcher
 import jellyfish
 import os
 import subprocess
+import re
 
 pyaccessibility_path = os.path.dirname(os.path.abspath(__file__))
 files_in_folders = os.listdir(pyaccessibility_path)

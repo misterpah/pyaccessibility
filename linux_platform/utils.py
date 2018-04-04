@@ -149,3 +149,42 @@ def grab_focus(windowName):
             os.system("wmctrl -i -a {}".format(windowID))
     except:
         raise OSError ("Linux program wmctrl is missing. Please install wmctrl.")
+
+def getActiveWindow():
+    try:
+        # get active window ID
+        windowID = subprocess.check_output(['xprop','-root','_NET_ACTIVE_WINDOW']).split(" ")[-1].split("\n")[0]
+    except:
+        windowID = None
+    if windowID == None:
+        raise OSError("linux program xprop is required.")
+
+    windowID_int = int(windowID,16)
+
+    ret = {}
+    #get window name from window ID
+    windowlist = subprocess.check_output(['wmctrl','-l'])
+    for each in windowlist.split("\n"):
+        cur_windowID = each.split(" ")[0]
+        cur_windowID = cur_windowID.replace("0x0","0x")
+        if (windowID == cur_windowID):
+            regex = r"0x[\d?]*[\w*?]*\s*\d\s*\w*-?\/?\w*\s(.*)"
+            ret['name'] = re.findall(regex,each)[0]
+            ret['windowID'] = windowID.replace("0x","0x0")
+    return ret
+
+def getObjectRect(handle):
+    rect = {"x":[-1,-1],"y":[-1,-1]}
+    try :
+        size = handle.queryComponent().getSize()
+        pos = handle.queryComponent().getPosition(pyatspi.DESKTOP_COORDS)
+        min_x = pos[0]
+        max_x = pos[0] + size[0]
+        min_y = pos[1]
+        max_y = pos[1] + size[1]
+        rect = {"x":[min_x,max_x],"y":[min_y,max_y]}
+    except:
+        pass
+    return rect
+
+
