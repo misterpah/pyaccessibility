@@ -101,7 +101,13 @@ def getObject(windowName,objectName):
         ret = similar_search
     else:
         ret = exact_search
-    return ret
+    result = None
+    if isinstance(ret,list):
+        if ret[0] == None:
+            result = ret[1]['return']
+        else:
+            result = ret[0]
+    return result
 
 def getObject_exact(windowName,objectName):
     data = getObjectList(windowName)
@@ -147,6 +153,7 @@ def grab_focus(windowName):
                 break
         if windowID != -1:
             os.system("wmctrl -i -a {}".format(windowID))
+            time.sleep(1)
     except:
         raise OSError ("Linux program wmctrl is missing. Please install wmctrl.")
 
@@ -188,3 +195,13 @@ def getObjectRect(handle):
     return rect
 
 
+def getObjectState(handle):
+    return handle.getState().getStates()
+
+def checkObjectState(handle,state_to_check):
+    states = getObjectState(handle)
+    ret = False
+    for each in states:
+        if each == state_to_check:
+            ret = True
+    return ret
