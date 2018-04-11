@@ -1,5 +1,5 @@
 SHOW_HIDDEN = False
-
+lowest_similarity_tolerance = 0.8
 
 def standard_name_reference(name, role, handle):
     ret = {}
@@ -93,11 +93,11 @@ def getObjectList(window):
             pass
     return ret
 
-def getObject(windowName,objectName):
+def getObject(window_struct,object_struct):
     ret = None
-    exact_search = getObject_exact(windowName,objectName)
+    exact_search = getObject_exact(window_struct,object_struct)
     if exact_search == None:
-        similar_search = getObject_similar(windowName,objectName)
+        similar_search = getObject_similar(window_struct,object_struct)
         ret = similar_search
     else:
         ret = exact_search
@@ -109,21 +109,22 @@ def getObject(windowName,objectName):
             result = ret[0]
     return result
 
-def getObject_exact(windowName,objectName):
-    data = getObjectList(windowName)
+def getObject_exact(window_struct,object_struct):
+    data = getObjectList(window_struct['name'])
     ret = None
     similarIndex = 0
     similarObject = None
     for each in data:
         if each[0]['name'] == "":
             continue
-        elif each[0]['name'] == objectName:
-            ret = each
+        elif each[0]['name'] == object_struct['name']:
+            if each[0]['role'] == object_struct['role']:
+                ret = each
     return ret
     
 
-def getObject_similar(windowName, objectName):
-    data = getObjectList(windowName)
+def getObject_similar(window_struct,object_struct):
+    data = getObjectList(window_struct['name'])
     ret = None
     similarIndex = 0
     similarObject = None
@@ -131,10 +132,16 @@ def getObject_similar(windowName, objectName):
         if each[0]['name'] == "":
             continue
         else:
-            if similar(objectName,each[0]['name']) > 0.5:
-                if similar(objectName,each[0]['name']) > similarIndex:
-                    similarIndex = similar(objectName,each[0]['name'])
-                    similarObject = each[0]
+            if similar(object_struct['name'],each[0]['name']) > lowest_similarity_tolerance:
+                if similar(object_struct['name'],each[0]['name']) > similarIndex:
+                    if object_struct['role'] == "unknown":
+                        similarIndex = similar(object_struct['name'],each[0]['name'])
+                        similarObject = each[0]
+                    else:
+                        if object_struct['role'] == each[0]['role']:
+                            similarIndex = similar(object_struct['name'],each[0]['name'])
+                            similarObject = each[0]
+                    
     if ret == None:
         ret = [None,{'return':similarObject,'similarity':similarIndex}]
     return ret
@@ -142,7 +149,8 @@ def getObject_similar(windowName, objectName):
 def similar(a, b):
     return jellyfish.jaro_distance(unicode(a,"utf-8"),unicode(b,"utf-8"))
 
-def grab_focus(windowName):
+def grab_focus(windowObj):
+    windowName = windowObj['name']
     windowName = getWindow(windowName)['name']
     try:
         windowlist = subprocess.check_output(['wmctrl','-l'])
