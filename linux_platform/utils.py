@@ -150,8 +150,12 @@ def similar(a, b):
     return jellyfish.jaro_distance(unicode(a,"utf-8"),unicode(b,"utf-8"))
 
 def grab_focus(windowObj):
+
     windowName = windowObj['name']
-    windowName = getWindow(windowName)['name']
+    try:
+        windowName = getWindow(windowName)['name']
+    except TypeError:
+        return False
     try:
         windowlist = subprocess.check_output(['wmctrl','-l'])
         windowID = -1
